@@ -1,5 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.14)
 
+CMAKE_POLICY(SET CMP0091 NEW)
+
 PROJECT(vACDM VERSION "1.3.2")
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 SET(CMAKE_CXX_STANDARD 20)
@@ -23,14 +25,14 @@ IF (MSVC)
     ADD_DEFINITIONS(/D_USRDLL)
 ENDIF ()
 
-if(DEV_BUILD)
+IF(DEV_BUILD)
     ADD_DEFINITIONS(-DDEV_BUILD)
-endif()
+ENDIF()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     ADD_DEFINITIONS(-DDEBUG_BUILD=1) # enables log output to console window
     ADD_DEFINITIONS(-DDEV_BUILD)
-endif()
+ENDIF()
 
 CONFIGURE_FILE(
     ${CMAKE_SOURCE_DIR}/src/Version.h.in
@@ -63,9 +65,6 @@ SET(SOURCE_FILES
     src/core/Server.h
     src/log/Logger.cpp
     src/log/Logger.h
-    src/log/sqlite3.c
-    src/log/sqlite3.h
-    src/log/sqlite3ext.h
     src/vACDM.cpp
     src/vACDM.h
     src/main.cpp
@@ -74,18 +73,11 @@ SET(SOURCE_FILES
 
 ADD_LIBRARY(vACDM SHARED ${SOURCE_FILES})
 TARGET_LINK_LIBRARIES(vACDM ${CMAKE_SOURCE_DIR}/external/lib/EuroScopePlugInDLL.lib crypt32.lib ws2_32.lib Shlwapi.lib)
-TARGET_LINK_LIBRARIES(vACDM debug ${CMAKE_SOURCE_DIR}/external/lib/jsoncpp_d.lib)
-TARGET_LINK_LIBRARIES(vACDM debug ${CMAKE_SOURCE_DIR}/external/lib/libcurl-d.lib)
-TARGET_LINK_LIBRARIES(vACDM debug ${CMAKE_SOURCE_DIR}/external/lib/Geographic_d.lib)
-TARGET_LINK_LIBRARIES(vACDM optimized ${CMAKE_SOURCE_DIR}/external/lib/jsoncpp.lib)
-TARGET_LINK_LIBRARIES(vACDM optimized ${CMAKE_SOURCE_DIR}/external/lib/libcurl.lib)
-TARGET_LINK_LIBRARIES(vACDM optimized ${CMAKE_SOURCE_DIR}/external/lib/Geographic.lib)
+INCLUDE(external/CMakeLists.txt)
 
 # move config file to output dir, allows loading of DLL from output dir
-configure_file(${CMAKE_SOURCE_DIR}/src/config/vacdm.txt ${CMAKE_BINARY_DIR}/vacdm.txt COPYONLY)
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/src/config/vacdm.txt ${CMAKE_BINARY_DIR}/vacdm.txt COPYONLY)
 
-include(cmake/UpdateSubmodules.cmake)
-set(gtest_force_shared_crt on)
-include(CTest)
-add_subdirectory(external)
-add_subdirectory(src/tests)
+SET(gtest_force_shared_crt on)
+INCLUDE(CTest)
+ADD_SUBDIRECTORY(src/tests)

@@ -1,19 +1,21 @@
-if(BUILD_TESTING)
-    add_executable(tests
+IF(BUILD_TESTING)
+    FIND_PACKAGE(GTest REQUIRED)
+
+    ADD_EXECUTABLE(tests
         test_test.cpp
     )
-    target_link_libraries(tests PRIVATE
+    TARGET_LINK_LIBRARIES(tests PRIVATE
         vACDM 
         GTest::gtest_main
         GTest::gtest
     )
 
-    target_include_directories(tests PRIVATE
+    TARGET_INCLUDE_DIRECTORIES(tests PRIVATE
         ${CMAKE_SOURCE_DIR}/src 
         ${CMAKE_BINARY_DIR}      
         ${CMAKE_SOURCE_DIR}/external/include  
     )
     
-    include(GoogleTest)
+    INCLUDE(GoogleTest)
     gtest_discover_tests(tests)
-endif()
+ENDIF()

@@ -12,4 +12,3 @@ jobs:
           clang-format-version: "13"
           check-path: "src"
           fallback-style: "Google"
-          exclude-regex: "(sqlite3)"

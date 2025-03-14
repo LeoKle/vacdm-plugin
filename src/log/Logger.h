@@ -1,12 +1,12 @@
 #pragma once
 
+#include <sqlite3.h>
+
 #include <list>
 #include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include "sqlite3.h"
 
 namespace vacdm::logging {
 class Logger {
