@@ -6,8 +6,6 @@ env:
   DLL_NAME: vACDM.dll
   BUILD_CONFIGURATION: Release
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  VERSION: "0"
-  DEV_RELEASE: "-1"
   WORKSPACE: ${{ github.workspace }}
   WORKSPACE_BUILD: ${{ github.workspace }}/build
 
@@ -27,6 +25,10 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+
+      - name: print version
+        run: |
+          echo "VERSION=${{ needs.get-latest-version.outputs.version }}"
 
       #   - name: Install MSVC toolset
       #     run: choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
@@ -65,8 +67,8 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: v${{ env.VERSION }}
+          tag_name: v${{ needs.get-latest-version.outputs.version }}
+          release_name: v${{ needs.get-latest-version.outputs.version }}
           draft: true # to allow amendment of release notes
           prerelease: true
         env:

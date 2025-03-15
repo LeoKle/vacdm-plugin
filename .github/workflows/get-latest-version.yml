@@ -2,10 +2,16 @@ name: Latest Version Check
 
 on:
   workflow_call:
+    outputs:
+      version:
+        description: "the version string to give to the DLL"
+        value: ${{jobs.get-version.outputs.version}}
 
 jobs:
   get-version:
     runs-on: windows-latest
+    outputs:
+      version: ${{steps.version_handler.outputs.version}}
     steps:
       - uses: actions/checkout@v3
 
@@ -20,6 +26,7 @@ jobs:
           pip install PyGithub
 
       - name: Run version handler
+        id: version_handler
         env:
           REPOSITORY: ${{ github.repository }}
           REF: ${{ github.ref }}

@@ -28,7 +28,7 @@ if is_dev_branch:
     version += "-dev." + dev_release
 
 # Write the version and dev release to GitHub environment variable
-with open(os.getenv("GITHUB_ENV"), "a") as env_file:
+with open(os.getenv("GITHUB_OUTPUT"), "a", encoding="utf-8") as env_file:
     env_file.write(f"VERSION={version}\n")
     print(f"VERSION={version}")
     if is_dev_branch and dev_release:
