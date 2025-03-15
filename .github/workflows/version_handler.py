@@ -20,7 +20,7 @@ print("Determined branch name: ", branch_name)
 
 version = extract_version_from_cmakelists()
 
-is_dev_branch = branch_name == "develop"
+is_dev_branch = branch_name != "main"
 dev_release = None
 if is_dev_branch:
     last_dev_release = determine_dev_release(version, REPOSITORY_NAME)
@@ -30,5 +30,7 @@ if is_dev_branch:
 # Write the version and dev release to GitHub environment variable
 with open(os.getenv("GITHUB_ENV"), "a") as env_file:
     env_file.write(f"VERSION={version}\n")
+    print(f"VERSION={version}")
     if is_dev_branch and dev_release:
+        print(f"DEV_RELEASE={dev_release}")
         env_file.write(f"DEV_RELEASE={dev_release}\n")
