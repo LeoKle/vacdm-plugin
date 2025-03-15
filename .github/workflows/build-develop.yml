@@ -7,7 +7,7 @@ on:
 
 env:
   DLL_NAME: vACDM.dll
-  BUILD_CONFIGURATION: Release
+  BUILD_CONFIGURATION: Release # even though it is a dev release, we build in Release so the DLL is optimized for performance
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   WORKSPACE_BUILD: ${{ github.workspace }}/build
 
