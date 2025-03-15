@@ -1,12 +1,14 @@
 name: Build Plugin Dev Release
 
-on: push
+on:
+  push:
+    branches:
+      - "develop"
 
 env:
   DLL_NAME: vACDM.dll
   BUILD_CONFIGURATION: Release
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  WORKSPACE: ${{ github.workspace }}
   WORKSPACE_BUILD: ${{ github.workspace }}/build
 
 jobs:
@@ -29,15 +31,6 @@ jobs:
       - name: print version
         run: |
           echo "VERSION=${{ needs.get-latest-version.outputs.version }}"
-
-      #   - name: Install MSVC toolset
-      #     run: choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-
-      #   - name: Set up MSVC environment
-      #     shell: pwsh
-      #     run: |
-      #       Import-Module "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
-      #       Enter-VsDevShell -VsInstallPath "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
 
       - name: Install Conan
         id: conan
