@@ -12,10 +12,14 @@ inputs:
   version-name:
     description: "Path to the build folder"
     required: true
+  draft:
+    description: "Release is a draft"
+    required: false
+    default: true # to allow amendment of release notes
   prelease:
     description: "Is this a pre-release"
     required: false
-    default: true # to allow amendment of release notes
+    default: true
   build-folder:
     description: "Path to the build folder"
     required: false
@@ -29,8 +33,8 @@ runs:
       with:
         tag_name: v${{ inputs.version }}
         release_name: v${{ inputs.version }}
-        draft: ${{ inputs.prelease }}
-        prerelease: true
+        draft: ${{ inputs.draft }}
+        prerelease: ${{ inputs.prelease }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
