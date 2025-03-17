@@ -1,5 +1,5 @@
-name: "Hello World"
-description: "Greet someone"
+name: "Conan install, package install & CMake Setup"
+description: "Install conan, conan packages and sets up CMake to use the conan toolchain"
 inputs:
   build-config:
     description: "build configuration either Release or Debug"
@@ -8,6 +8,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Install Conan
+      id: conan
+      uses: turtlebrowser/get-conan@main
+
     - name: Cache Conan packages
       uses: actions/cache@v4
       with:
