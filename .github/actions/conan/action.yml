@@ -1,0 +1,26 @@
+name: "Hello World"
+description: "Greet someone"
+inputs:
+  build-config:
+    description: "build configuration either Release or Debug"
+    required: true
+    default: "Release"
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Conan packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.conan2
+        key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile*') }}-build_type-${{ inputs.build-config }}
+        restore-keys: |
+          ${{ runner.os }}-conan-${{ hashFiles('**/conanfile*') }}-
+          ${{ runner.os }}-conan-
+
+    - name: Install Conan packages
+      run: |
+        conan profile detect
+        conan install . --profile=conanprofile --settings=build_type=${{ inputs.build-config }} --output-folder=${{ github.workspace }}/${{ inputs.build-folder }} --build=missing
+
+    - name: CMake Setup
+      run: cd ${{ github.workspace }}/${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32
