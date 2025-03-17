@@ -24,3 +24,8 @@ jobs:
         uses: ./.github/actions/conan
         with:
           build-config: ${{env.BUILD_CONFIGURATION}}
+
+      - name: Build DLL
+        uses: ./.github/actions/build
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}

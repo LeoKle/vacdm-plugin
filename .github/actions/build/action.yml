@@ -1,0 +1,19 @@
+name: "Conan install, package install & CMake Setup"
+description: "Install conan, conan packages and sets up CMake to use the conan toolchain"
+inputs:
+  build-config:
+    description: "build configuration either Release or Debug"
+    required: true
+    default: "Release"
+  build-folder:
+    default: build
+runs:
+  using: "composite"
+  steps:
+    - name: CMake Setup
+      shell: bash
+      run: cd ${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32
+
+    - name: Build DLL
+      shell: bash
+      run: cmake --build ${{inputs.build-folder}} --config ${{inputs.build-config}}
