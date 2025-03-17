@@ -39,3 +39,4 @@ jobs:
           build-config: ${{env.BUILD_CONFIGURATION}}
           version-name: ${{env.VERSION}}
           prelease: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

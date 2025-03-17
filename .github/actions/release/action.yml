@@ -24,6 +24,9 @@ inputs:
     description: "Path to the build folder"
     required: false
     default: build
+  GITHUB_TOKEN:
+    description: "GitHub token"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -36,7 +39,7 @@ runs:
         draft: ${{ inputs.draft }}
         prerelease: ${{ inputs.prelease }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
 
     - name: Upload release asset
       id: upload-release-asset
@@ -47,7 +50,7 @@ runs:
         asset_name: ${{inputs.dll-name}}
         asset_content_type: application/octet-stream
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
 
     - name: Upload config file (vacdm.txt)
       id: upload-release-asset-txt
@@ -58,4 +61,4 @@ runs:
         asset_name: vacdm.txt
         asset_content_type: text/plain
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
