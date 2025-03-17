@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get latest release version
-        uses: ./.github/tasks/version.yml
+        uses: ./.github/actions/version
         with:
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
