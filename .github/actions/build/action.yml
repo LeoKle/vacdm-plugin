@@ -12,13 +12,21 @@ inputs:
   dev-build-version:
     description: "The version for a development build"
     required: false
-    default: "0"
+    default: "-1"
 runs:
   using: "composite"
   steps:
     - name: CMake Setup
       shell: bash
-      run: cd ${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32 -DDEV_BUILD=ON -DDEV_RELEASE_NUMBER="${{ inputs.dev-build-version }}"
+      run: |
+        cd ${{ inputs.build-folder }}
+        CMAKE_FLAGS="-G 'Visual Studio 17 2022' -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32"
+
+        if [ "${{ inputs.dev-build-version }}" != "-1" ]; then
+          CMAKE_FLAGS="$CMAKE_FLAGS -DDEV_BUILD=ON -DDEV_RELEASE_NUMBER=${{ inputs.dev-build-version }}"
+        fi
+
+        cmake .. $CMAKE_FLAGS
 
     - name: Build DLL
       shell: bash
