@@ -1,0 +1,47 @@
+name: Build Plugin Dev Release
+
+on:
+  push:
+    branches:
+      - "develop"
+
+env:
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: "Build plugin - develop release"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Get latest release version
+        id: version_check
+        uses: ./.github/actions/version
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
+      - name: Install conan & packages
+        uses: ./.github/actions/conan
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}
+
+      - name: Build DLL
+        uses: ./.github/actions/build
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}
+          dev-build-version: ${{steps.version_check.outputs.dev-build-version}}
+
+      - name: Run tests
+        uses: ./.github/actions/tests
+
+      - name: Create GitHub Release
+        uses: ./.github/actions/release
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}
+          version: ${{steps.version_check.outputs.version}}
+          prelease: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
