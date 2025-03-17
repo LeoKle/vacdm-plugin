@@ -11,7 +11,4 @@ runs:
     - name: run CTest
       shell: bash
       run: |
-        ctest 
-        --test-dir ${{ inputs.build-folder }}
-        --output-on-failure
-        --verbose
+        ctest --test-dir ${{ inputs.build-folder }} --output-on-failure --verbose
