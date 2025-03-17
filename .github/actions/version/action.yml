@@ -12,6 +12,9 @@ outputs:
   version:
     description: "The determined version"
     value: ${{ steps.version_handler.outputs.version }}
+  dev-build-version:
+    description: "The determined version for a development build"
+    value: ${{ steps.version_handler.outputs.dev_release }}
 
 runs:
   using: "composite"
@@ -37,7 +40,13 @@ runs:
         REF: ${{ inputs.ref }}
       shell: bash
       run: |
-        python .github/workflows/version_handler.py
+        python .github/actions/version/version_handler.py
+
+    - name: Print Outputs
+      shell: bash
+      run: |
+        echo "Determined Version: ${{ steps.version_handler.outputs.version }}"
+        echo "Development Build Version: ${{ steps.version_handler.outputs.dev_release }}"
 
     - name: Fail if version is 0
       shell: bash

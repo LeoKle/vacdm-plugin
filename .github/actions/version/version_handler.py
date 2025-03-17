@@ -31,12 +31,6 @@ if not github_output:
     print("Error: GITHUB_OUTPUT is not set!", file=sys.stderr)
     sys.exit(1)
 
-# Write the outputs correctly
-with open(github_output, "a", encoding="utf-8") as env_file:
-    env_file.write(f"version={version}\n")
-    print(
-        f"::set-output name=version::{version}"
-    )  # Deprecated, but useful for debugging
-    if is_dev_branch and dev_release:
-        env_file.write(f"dev_release={dev_release}\n")
-        print(f"::set-output name=dev_release::{dev_release}")
+with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+    print(f"version={version}", file=fh)
+    print(f"dev_release={dev_release}", file=fh)

@@ -9,12 +9,16 @@ inputs:
     description: "Path to the build folder"
     required: false
     default: build
+  dev-build-version:
+    description: "The version for a development build"
+    required: false
+    default: "0"
 runs:
   using: "composite"
   steps:
     - name: CMake Setup
       shell: bash
-      run: cd ${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32
+      run: cd ${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32 -DDEV_BUILD=ON -DDEV_RELEASE_NUMBER="${{ inputs.dev-build-version }}"
 
     - name: Build DLL
       shell: bash
