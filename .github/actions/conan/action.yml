@@ -1,5 +1,5 @@
 name: "Conan install, package install & CMake Setup"
-description: "Install conan, conan packages and sets up CMake to use the conan toolchain"
+description: "Install conan and conan packages"
 inputs:
   build-config:
     description: "build configuration either Release or Debug"
