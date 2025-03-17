@@ -27,8 +27,8 @@ runs:
       shell: bash
       run: |
         conan profile detect
-        conan install . --profile=conanprofile --settings=build_type=${{ inputs.build-config }} --output-folder=${{ github.workspace }}/${{ inputs.build-folder }} --build=missing
+        conan install . --profile=conanprofile --settings=build_type=${{ inputs.build-config }} --output-folder=${{ inputs.build-folder }} --build=missing
 
     - name: CMake Setup
       shell: bash
-      run: cd ${{ github.workspace }}/${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32
+      run: cd ${{ inputs.build-folder }} && cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32
