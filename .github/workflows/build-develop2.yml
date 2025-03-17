@@ -2,6 +2,9 @@ name: Build Plugin Dev Release
 
 on: push
 
+env:
+  BUILD_CONFIGURATION: Release
+
 jobs:
   build:
     runs-on: windows-latest
@@ -17,6 +20,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
 
-      - name: Use Retrieved Version
-        run: |
-          echo "Version retrieved: $VERSION"
+      - name: Install conan & packages
+        uses: ./.github/actions/conan
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}
