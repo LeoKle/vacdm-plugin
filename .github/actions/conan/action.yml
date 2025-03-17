@@ -5,6 +5,8 @@ inputs:
     description: "build configuration either Release or Debug"
     required: true
     default: "Release"
+  build-folder:
+    default: build
 runs:
   using: "composite"
   steps:
