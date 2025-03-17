@@ -32,3 +32,10 @@ jobs:
 
       - name: Run tests
         uses: ./.github/actions/tests
+
+      - name: Create GitHub Release
+        uses: ./.github/actions/release
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}
+          version-name: ${{env.VERSION}}
+          prelease: true
