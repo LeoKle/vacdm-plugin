@@ -9,8 +9,8 @@ inputs:
     description: "build configuration either Release or Debug"
     required: true
     default: "Release"
-  version-name:
-    description: "Path to the build folder"
+  version:
+    description: "the version name"
     required: true
   draft:
     description: "Release is a draft"

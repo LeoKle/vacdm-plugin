@@ -8,6 +8,11 @@ inputs:
     description: "The Git reference (branch/tag) to check"
     required: true
 
+outputs:
+  version:
+    description: "The determined version"
+    value: ${{ steps.version_handler.outputs.version }}
+
 runs:
   using: "composite"
   steps:
@@ -33,11 +38,6 @@ runs:
       shell: bash
       run: |
         python .github/workflows/version_handler.py
-
-      # Set the output VERSION from the result of the script
-    - name: Set version output
-      shell: bash
-      run: echo "VERSION=${{ steps.version_handler.outputs.version }}" >> $GITHUB_ENV
 
     - name: Fail if version is 0
       shell: bash
