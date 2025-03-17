@@ -1,0 +1,44 @@
+name: "Latest Version Check"
+description: "Checks for the latest version of the repository and outputs it."
+inputs:
+  repository:
+    description: "The repository to check version for"
+    required: true
+  ref:
+    description: "The Git reference (branch/tag) to check"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.x"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install PyGithub
+
+    - name: Run version handler
+      id: version_handler
+      env:
+        REPOSITORY: ${{ inputs.repository }}
+        REF: ${{ inputs.ref }}
+      run: |
+        python .github/workflows/version_handler.py
+
+      # Set the output VERSION from the result of the script
+    - name: Set version output
+      run: echo "VERSION=${{ steps.version_handler.outputs.version }}" >> $GITHUB_ENV
+
+    - name: Fail if version is 0
+      run: |
+        if [ "${{ steps.version_handler.outputs.version }}" == "0" ]; then
+          echo "Version is 0, failing the job!"
+          exit 1
+        fi
