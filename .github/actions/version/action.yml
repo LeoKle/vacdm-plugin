@@ -20,6 +20,7 @@ runs:
         python-version: "3.x"
 
     - name: Install dependencies
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         pip install PyGithub
@@ -29,14 +30,17 @@ runs:
       env:
         REPOSITORY: ${{ inputs.repository }}
         REF: ${{ inputs.ref }}
+      shell: bash
       run: |
         python .github/workflows/version_handler.py
 
       # Set the output VERSION from the result of the script
     - name: Set version output
+      shell: bash
       run: echo "VERSION=${{ steps.version_handler.outputs.version }}" >> $GITHUB_ENV
 
     - name: Fail if version is 0
+      shell: bash
       run: |
         if [ "${{ steps.version_handler.outputs.version }}" == "0" ]; then
           echo "Version is 0, failing the job!"
