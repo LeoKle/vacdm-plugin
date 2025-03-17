@@ -1,0 +1,22 @@
+name: Build Plugin Dev Release
+
+on: push
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: "Build plugin - develop release"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Get latest release version
+        uses: ./.github/tasks/version.yml
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
+      - name: Use Retrieved Version
+        run: |
+          echo "Version retrieved: $VERSION"
