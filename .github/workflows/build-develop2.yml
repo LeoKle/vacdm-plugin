@@ -32,5 +32,3 @@ jobs:
 
       - name: Run tests
         uses: ./.github/actions/tests
-        with:
-          build-config: ${{env.BUILD_CONFIGURATION}}
