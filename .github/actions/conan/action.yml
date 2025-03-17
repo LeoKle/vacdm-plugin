@@ -26,5 +26,5 @@ runs:
     - name: Install Conan packages
       shell: bash
       run: |
-        conan profile detect
+        conan profile detect --force
         conan install . --profile=conanprofile --settings=build_type=${{ inputs.build-config }} --output-folder=${{ inputs.build-folder }} --build=missing
