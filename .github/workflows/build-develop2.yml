@@ -29,3 +29,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           build-config: ${{env.BUILD_CONFIGURATION}}
+
+      - name: Run tests
+        uses: ./.github/actions/tests
+        with:
+          build-config: ${{env.BUILD_CONFIGURATION}}
