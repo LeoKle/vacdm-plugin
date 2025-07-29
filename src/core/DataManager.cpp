@@ -2,6 +2,7 @@
 
 #include "core/Server.h"
 #include "log/Logger.h"
+#include "main.h"
 #include "utils/Date.h"
 
 using namespace vacdm::com;
@@ -62,9 +63,11 @@ void DataManager::run() {
         if (counter++ % updateCycleSeconds != 0) continue;
 
         // obtain a copy of the pilot data, work with the copy to minimize lock time
-        this->m_pilotLock.lock();
-        auto pilots = this->m_pilots;
-        this->m_pilotLock.unlock();
+        std::map<std::string, std::array<vacdm::types::Pilot, 3U>> pilots;
+        {
+            std::lock_guard guard(this->m_pilotLock);
+            pilots = this->m_pilots;
+        }
 
         this->processAsynchronousMessages(pilots);
 
@@ -90,96 +93,96 @@ void DataManager::run() {
             }
         }
 
-        // replace the pilot data with the updated copy
-        this->m_pilotLock.lock();
-        this->m_pilots = pilots;
-        this->m_pilotLock.unlock();
+        {
+            // replace the pilot data with the updated copy
+            std::lock_guard guard(this->m_pilotLock);
+            this->m_pilots = pilots;
+        }
     }
 }
 
 void DataManager::processAsynchronousMessages(std::map<std::string, std::array<types::Pilot, 3U>>& pilots) {
-    this->m_asyncMessagesLock.lock();
-    auto messages = this->m_asynchronousMessages;
-    this->m_asynchronousMessages.clear();
-    this->m_asyncMessagesLock.unlock();
+    std::list<AsynchronousMessage> messages;
+    {
+        std::lock_guard guard(this->m_asyncMessagesLock);
+        messages = std::move(this->m_asynchronousMessages);
+    }
 
     for (auto& message : messages) {
-        // find pilot in list
-        for (auto& [callsign, data] : pilots) {
-            if (callsign == message.callsign) {
-                std::string messageType;
+        auto pilot = pilots.find(message.callsign);
+        if (pilot == pilots.end()) continue;
 
-                switch (message.type) {
-                    case MessageType::UpdateEXOT:
-                        Server::instance().updateExot(message.callsign, message.value);
-                        messageType = "EXOT";
-                        break;
-                    case MessageType::UpdateTOBT:
-                        Server::instance().updateTobt(data[ConsolidatedData], message.value, false);
-                        messageType = "TOBT";
-                        break;
-                    case MessageType::UpdateTOBTConfirmed:
-                        Server::instance().updateTobt(data[ConsolidatedData], message.value, true);
-                        messageType = "TOBT Confirmed Status";
-                        break;
-                    case MessageType::UpdateASAT:
-                        Server::instance().updateAsat(message.callsign, message.value);
-                        messageType = "ASAT";
-                        break;
-                    case MessageType::UpdateASRT:
-                        Server::instance().updateAsrt(message.callsign, message.value);
-                        messageType = "ASRT";
-                        break;
-                    case MessageType::UpdateAOBT:
-                        Server::instance().updateAobt(message.callsign, message.value);
-                        messageType = "AOBT";
-                        break;
-                    case MessageType::UpdateAORT:
-                        Server::instance().updateAort(message.callsign, message.value);
-                        messageType = "AORT";
-                        break;
-                    case MessageType::ResetTOBT:
-                        Server::instance().resetTobt(message.callsign, types::defaultTime,
-                                                     data[ConsolidatedData].tobt_state);
-                        messageType = "TOBT reset";
-                        break;
-                    case MessageType::ResetASAT:
-                        Server::instance().updateAsat(message.callsign, message.value);
-                        messageType = "ASAT reset";
-                        break;
-                    case MessageType::ResetASRT:
-                        Server::instance().updateAsrt(message.callsign, message.value);
-                        messageType = "ASRT reset";
-                        break;
-                    case MessageType::ResetTOBTConfirmed:
-                        Server::instance().resetTobt(message.callsign, data[ConsolidatedData].tobt, "GUESS");
-                        messageType = "TOBT confirmed reset";
-                        break;
-                    case MessageType::ResetAORT:
-                        Server::instance().updateAort(message.callsign, message.value);
-                        messageType = "AORT reset";
-                        break;
-                    case MessageType::ResetAOBT:
-                        Server::instance().updateAobt(message.callsign, message.value);
-                        messageType = "AOBT reset";
-                        break;
-                    case MessageType::ResetPilot:
-                        Server::instance().deletePilot(message.callsign);
-                        messageType = "Pilot reset";
-                        break;
+        auto& [callsign, data] = *pilot;
 
-                    default:
-                        break;
-                }
+        std::string messageType;
 
-                Logger::instance().log(Logger::LogSender::DataManager,
-                                       "Sending " + messageType + " update: " + callsign + " - " +
-                                           utils::Date::timestampToIsoString(message.value),
-                                       Logger::LogLevel::Info);
-
+        switch (message.type) {
+            case MessageType::UpdateEXOT:
+                Server::instance().updateExot(message.callsign, message.value);
+                messageType = "EXOT";
                 break;
-            }
+            case MessageType::UpdateTOBT:
+                Server::instance().updateTobt(data[ConsolidatedData], message.value, false);
+                messageType = "TOBT";
+                break;
+            case MessageType::UpdateTOBTConfirmed:
+                Server::instance().updateTobt(data[ConsolidatedData], message.value, true);
+                messageType = "TOBT Confirmed Status";
+                break;
+            case MessageType::UpdateASAT:
+                Server::instance().updateAsat(message.callsign, message.value);
+                messageType = "ASAT";
+                break;
+            case MessageType::UpdateASRT:
+                Server::instance().updateAsrt(message.callsign, message.value);
+                messageType = "ASRT";
+                break;
+            case MessageType::UpdateAOBT:
+                Server::instance().updateAobt(message.callsign, message.value);
+                messageType = "AOBT";
+                break;
+            case MessageType::UpdateAORT:
+                Server::instance().updateAort(message.callsign, message.value);
+                messageType = "AORT";
+                break;
+            case MessageType::ResetTOBT:
+                Server::instance().resetTobt(message.callsign, types::defaultTime, data[ConsolidatedData].tobt_state);
+                messageType = "TOBT reset";
+                break;
+            case MessageType::ResetASAT:
+                Server::instance().updateAsat(message.callsign, message.value);
+                messageType = "ASAT reset";
+                break;
+            case MessageType::ResetASRT:
+                Server::instance().updateAsrt(message.callsign, message.value);
+                messageType = "ASRT reset";
+                break;
+            case MessageType::ResetTOBTConfirmed:
+                Server::instance().resetTobt(message.callsign, data[ConsolidatedData].tobt, "GUESS");
+                messageType = "TOBT confirmed reset";
+                break;
+            case MessageType::ResetAORT:
+                Server::instance().updateAort(message.callsign, message.value);
+                messageType = "AORT reset";
+                break;
+            case MessageType::ResetAOBT:
+                Server::instance().updateAobt(message.callsign, message.value);
+                messageType = "AOBT reset";
+                break;
+            case MessageType::ResetPilot:
+                Server::instance().deletePilot(message.callsign);
+                pilots.erase(message.callsign);
+                messageType = "Pilot reset";
+                break;
+
+            default:
+                break;
         }
+
+        Logger::instance().log(Logger::LogSender::DataManager,
+                               "Sending " + messageType + " update: " + message.callsign + " - " +
+                                   utils::Date::timestampToIsoString(message.value),
+                               Logger::LogLevel::Info);
     }
 }
 
@@ -276,7 +279,18 @@ void DataManager::handleTagFunction(MessageType type, const std::string callsign
             pilot.aobt = types::defaultTime;
             break;
         case MessageType::ResetPilot:
-            this->m_pilots.erase(it);
+            pilot.eobt = types::defaultTime;
+            pilot.tobt = types::defaultTime;
+            pilot.ctot = types::defaultTime;
+            pilot.ttot = types::defaultTime;
+            pilot.tsat = types::defaultTime;
+            pilot.exot = types::defaultTime;
+            pilot.asat = types::defaultTime;
+            pilot.aobt = types::defaultTime;
+            pilot.atot = types::defaultTime;
+            pilot.atot = types::defaultTime;
+            pilot.asrt = types::defaultTime;
+            pilot.aort = types::defaultTime;
             break;
         default:
             break;
@@ -347,8 +361,11 @@ void DataManager::setActiveAirports(const std::list<std::string> activeAirports)
 }
 
 void DataManager::queueFlightplanUpdate(EuroScopePlugIn::CFlightPlan flightplan) {
+    // skip the update if:
+    // - the flightplan or its data is invalid
+    // - or the aircraft is out of range therefore GetSimulated() is true
     if (false == flightplan.IsValid() || nullptr == flightplan.GetFlightPlanData().GetPlanType() ||
-        nullptr == flightplan.GetFlightPlanData().GetOrigin())
+        nullptr == flightplan.GetFlightPlanData().GetOrigin() || flightplan.GetSimulated())
         return;
 
     auto pilot = this->CFlightPlanToPilot(flightplan);
@@ -431,33 +448,29 @@ void DataManager::consolidateData(std::array<types::Pilot, 3>& pilot) {
 
 void DataManager::processEuroScopeUpdates(std::map<std::string, std::array<types::Pilot, 3U>>& pilots) {
     // obtain a copy of the flightplan updates, clear the update list, consolidate flightplan updates
-    this->m_euroscopeUpdatesLock.lock();
-    auto flightplanUpdates = this->m_euroscopeFlightplanUpdates;
-    this->m_euroscopeFlightplanUpdates.clear();
-    this->m_euroscopeUpdatesLock.unlock();
+    std::list<EuroscopeFlightplanUpdate> flightplanUpdates;
+    {
+        std::lock_guard guard(this->m_euroscopeUpdatesLock);
+        flightplanUpdates.swap(this->m_euroscopeFlightplanUpdates);
+    }
 
     this->consolidateFlightplanUpdates(flightplanUpdates);
 
     for (auto& update : flightplanUpdates) {
-        bool found = false;
+        const auto& pilot = update.data;
 
-        const auto pilot = update.data;
+        auto it = pilots.find(pilot.callsign);
 
-        // find pilot in list
-        for (auto& pair : pilots) {
-            if (pilot.callsign == pair.first) {
-                Logger::instance().log(Logger::LogSender::DataManager, "Updated data of " + pilot.callsign,
-                                       Logger::LogLevel::Info);
-
-                pair.second[EuroscopeData] = pilot;
-                found = true;
-                break;
-            }
-        }
-
-        if (false == found) {
-            Logger::instance().log(Logger::LogSender::DataManager, "Added " + pilot.callsign, Logger::LogLevel::Info);
-            pilots.insert({pilot.callsign, {pilot, pilot, types::Pilot()}});
+        if (it != pilots.end()) {
+            // Pilot found, update the corresponding data
+            Logger::instance().log(Logger::LogSender::DataManager, "Updated data of " + pilot.callsign,
+                                   Logger::LogLevel::Info);
+            it->second[EuroscopeData] = pilot;
+        } else {
+            // Pilot not found, add a new entry
+            Logger::instance().log(Logger::LogSender::DataManager,
+                                   "Added new pilot entry for callsign: " + pilot.callsign, Logger::LogLevel::Info);
+            pilots.insert({pilot.callsign, std::array<types::Pilot, 3U>{pilot, pilot, types::Pilot()}});
         }
     }
 }
@@ -514,8 +527,16 @@ types::Pilot DataManager::CFlightPlanToPilot(const EuroScopePlugIn::CFlightPlan 
     pilot.lastUpdate = std::chrono::utc_clock::now();
 
     // position data
-    pilot.latitude = flightplan.GetFPTrackPosition().GetPosition().m_Latitude;
-    pilot.longitude = flightplan.GetFPTrackPosition().GetPosition().m_Longitude;
+    if (Plugin->RadarTargetSelect(pilot.callsign.c_str()).IsValid()) {
+        // get the position of the flight using its radar target, it's more precise
+        pilot.latitude = Plugin->RadarTargetSelect(pilot.callsign.c_str()).GetPosition().GetPosition().m_Latitude;
+        pilot.longitude = Plugin->RadarTargetSelect(pilot.callsign.c_str()).GetPosition().GetPosition().m_Longitude;
+    } else {
+        // if we have no radar target we will use the fptrackposition,
+        // not sufficient precision to determine the taxizone
+        pilot.latitude = flightplan.GetFPTrackPosition().GetPosition().m_Latitude;
+        pilot.longitude = flightplan.GetFPTrackPosition().GetPosition().m_Longitude;
+    }
 
     // flightplan & clearance data
     pilot.origin = flightplan.GetFlightPlanData().GetOrigin();

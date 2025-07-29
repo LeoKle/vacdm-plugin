@@ -1,0 +1,64 @@
+name: "Create Github Release"
+description: "Publishes the plugin DLL and config"
+inputs:
+  dll-name:
+    description: "Name of the DLL to be uploaded"
+    default: "vACDM.dll"
+    required: false
+  build-config:
+    description: "build configuration either Release or Debug"
+    required: true
+    default: "Release"
+  version:
+    description: "the version name"
+    required: true
+  draft:
+    description: "Release is a draft"
+    required: false
+    default: true # to allow amendment of release notes
+  prelease:
+    description: "Is this a pre-release"
+    required: false
+    default: true
+  build-folder:
+    description: "Path to the build folder"
+    required: false
+    default: build
+  GITHUB_TOKEN:
+    description: "GitHub token"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: v${{ inputs.version }}
+        release_name: v${{ inputs.version }}
+        draft: ${{ inputs.draft }}
+        prerelease: ${{ inputs.prelease }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: Upload release asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{inputs.build-folder}}/${{inputs.build-config}}/${{inputs.dll-name}}
+        asset_name: ${{inputs.dll-name}}
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: Upload config file (vacdm.txt)
+      id: upload-release-asset-txt
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: src/config/vacdm.txt
+        asset_name: vacdm.txt
+        asset_content_type: text/plain
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}

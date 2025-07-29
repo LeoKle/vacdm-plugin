@@ -1,9 +1,9 @@
-name: Build Plugin Dev Release
+name: Build Plugin Main Release
 
 on:
   push:
     branches:
-      - "develop"
+      - "main"
 
 env:
   BUILD_CONFIGURATION: Release
@@ -11,7 +11,7 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    name: "Build plugin - develop release"
+    name: "Build plugin - main release"
 
     steps:
       - name: Check out repository
@@ -33,7 +33,6 @@ jobs:
         uses: ./.github/actions/build
         with:
           build-config: ${{env.BUILD_CONFIGURATION}}
-          dev-build-version: ${{steps.version_check.outputs.dev-build-version}}
 
       - name: Run tests
         uses: ./.github/actions/tests

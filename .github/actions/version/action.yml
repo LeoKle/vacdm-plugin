@@ -1,0 +1,57 @@
+name: "Latest Version Check"
+description: "Checks for the latest version of the repository and outputs it."
+inputs:
+  repository:
+    description: "The repository to check version for"
+    required: true
+  ref:
+    description: "The Git reference (branch/tag) to check"
+    required: true
+
+outputs:
+  version:
+    description: "The determined version"
+    value: ${{ steps.version_handler.outputs.version }}
+  dev-build-version:
+    description: "The determined version for a development build"
+    value: ${{ steps.version_handler.outputs.dev_release }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.x"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install PyGithub
+
+    - name: Run version handler
+      id: version_handler
+      env:
+        REPOSITORY: ${{ inputs.repository }}
+        REF: ${{ inputs.ref }}
+      shell: bash
+      run: |
+        python .github/actions/version/version_handler.py
+
+    - name: Print Outputs
+      shell: bash
+      run: |
+        echo "Determined Version: ${{ steps.version_handler.outputs.version }}"
+        echo "Development Build Version: ${{ steps.version_handler.outputs.dev_release }}"
+
+    - name: Fail if version is 0
+      shell: bash
+      run: |
+        if [ "${{ steps.version_handler.outputs.version }}" == "0" ]; then
+          echo "Version is 0, failing the job!"
+          exit 1
+        fi

@@ -11,7 +11,7 @@ static constexpr std::chrono::utc_clock::time_point defaultTime =
 
 typedef struct Pilot_t {
     std::string callsign;
-    std::chrono::utc_clock::time_point lastUpdate;
+    std::chrono::utc_clock::time_point lastUpdate = defaultTime;
 
     bool inactive = false;
 

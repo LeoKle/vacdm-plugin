@@ -1,0 +1,32 @@
+name: "CMake build project"
+description: "Sets up CMake to use the conan toolchain and builds the project"
+inputs:
+  build-config:
+    description: "build configuration either Release or Debug"
+    required: true
+    default: "Release"
+  build-folder:
+    description: "Path to the build folder"
+    required: false
+    default: build
+  dev-build-version:
+    description: "The version for a development build"
+    required: false
+    default: "-1"
+runs:
+  using: "composite"
+  steps:
+    - name: CMake Setup
+      shell: bash
+      run: |
+        cd ${{ inputs.build-folder }}
+
+        if [ "${{ inputs.dev-build-version }}" != "-1" ]; then
+          cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32 -DDEV_BUILD=ON -DDEV_RELEASE_NUMBER="${{ inputs.dev-build-version }}"
+        else
+          cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=${{ inputs.build-folder }}/conan_toolchain.cmake -A Win32 
+        fi
+
+    - name: Build DLL
+      shell: bash
+      run: cmake --build ${{inputs.build-folder}} --config ${{inputs.build-config}}

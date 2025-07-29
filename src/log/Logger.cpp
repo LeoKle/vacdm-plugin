@@ -51,10 +51,11 @@ void Logger::run() {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         // obtain a copy of the logs, clear the log list to minimize lock time
-        this->m_logLock.lock();
-        auto logs = m_asynchronousLogs;
-        m_asynchronousLogs.clear();
-        this->m_logLock.unlock();
+        std::list<AsynchronousLog> logs;
+        {
+            std::lock_guard guard(this->m_logLock);
+            logs = std::move(m_asynchronousLogs);
+        }
 
         auto it = logs.begin();
         while (it != logs.end()) {
